@@ -138,25 +138,28 @@ def reply_afk(update, context):
 
 
 def check_afk(update, context, user_id, fst_name, userc_id):
-    if is_user_afk(user_id):
-        reason = afk_reason(user_id)
-        since_afk = get_readable_time(
-            (time.time() - float(REDIS.get(f"afk_time_{user_id}")))
+    if not is_user_afk(user_id):
+        return
+    reason = afk_reason(user_id)
+    since_afk = get_readable_time(
+        (time.time() - float(REDIS.get(f"afk_time_{user_id}")))
+    )
+    if int(userc_id) == int(user_id):
+        return
+    res = (
+        "{} is AFK!\nSince: {}".format(fst_name, since_afk)
+        if reason == "none"
+        else "{} is AFK! Says it's because of:\n{}\nSince: {}".format(
+            fst_name, reason, since_afk
         )
-        if int(userc_id) == int(user_id):
-            return
-        if reason == "none":
-            res = "{} is AFK!\nSince: {}".format(fst_name, since_afk)
-        else:
-            res = "{} is AFK! Says it's because of:\n{}\nSince: {}".format(
-                fst_name, reason, since_afk
-            )
-        afkcheck = update.effective_message.reply_text(res)
-        sleep(10)
-        try:
-            afkcheck.delete()
-        except BadRequest:
-            return
+    )
+
+    afkcheck = update.effective_message.reply_text(res)
+    sleep(10)
+    try:
+        afkcheck.delete()
+    except BadRequest:
+        return
 
 
 def __user_info__(user_id):

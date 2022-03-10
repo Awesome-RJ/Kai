@@ -117,7 +117,7 @@ def markdown_help(update: Update, context: CallbackContext):
 def wiki(update: Update, context: CallbackContext):
     kueri = re.split(pattern="wiki", string=update.effective_message.text)
     wikipedia.set_lang("en")
-    if len(str(kueri[1])) == 0:
+    if not str(kueri[1]):
         update.effective_message.reply_text("Enter keywords!")
     else:
         try:
@@ -156,24 +156,14 @@ def wall(update: Update, context: CallbackContext):
     args = context.args
     msg_id = update.effective_message.message_id
     bot = context.bot
-    query = " ".join(args)
-    if not query:
-        msg.reply_text("Please enter a query!")
-        return
-    else:
+    if query := " ".join(args):
         caption = query
         term = query.replace(" ", "%20")
         json_rep = requests.get(
             f"https://wall.alphacoders.com/api2.0/get.php?auth={WALL_API}&method=search&term={term}"
         ).json()
-        if not json_rep.get("success"):
-            msg.reply_text(f"An error occurred! Report this @{SUPPORT_CHAT}")
-        else:
-            wallpapers = json_rep.get("wallpapers")
-            if not wallpapers:
-                msg.reply_text("No results found! Refine your search.")
-                return
-            else:
+        if json_rep.get("success"):
+            if wallpapers := json_rep.get("wallpapers"):
                 index = randint(0, len(wallpapers) - 1)  # Choose random index
                 wallpaper = wallpapers[index]
                 wallpaper = wallpaper.get("url_image")
@@ -193,6 +183,14 @@ def wall(update: Update, context: CallbackContext):
                     reply_to_message_id=msg_id,
                     timeout=60,
                 )
+            else:
+                msg.reply_text("No results found! Refine your search.")
+                return
+        else:
+            msg.reply_text(f"An error occurred! Report this @{SUPPORT_CHAT}")
+    else:
+        msg.reply_text("Please enter a query!")
+        return
 
 
 @kaicmd(command="paste")
@@ -255,7 +253,7 @@ def get_readable_time(seconds: int) -> str:
     for x, _ in enumerate(time_list):
         time_list[x] = str(time_list[x]) + time_suffix_list[x]
     if time_list == 4:
-        ping_time += time_list.pop() + ", "
+        ping_time += f'{time_list.pop()}, '
 
     time_list.reverse()
     ping_time += ":".join(time_list)
@@ -278,22 +276,22 @@ def stats(update, context):
     uptime = datetime.datetime.fromtimestamp(boot_time()).strftime("%Y-%m-%d %H:%M:%S")
     botuptime = get_readable_time((time.time() - StartTime))
     status = "*╒═══「 System statistics 」*\n\n"
-    status += "*• System Start time:* " + str(uptime) + "\n"
+    status += f"*• System Start time:* {str(uptime)}" + "\n"
     uname = platform.uname()
-    status += "*• System:* " + str(uname.system) + "\n"
-    status += "*• Node name:* " + escape_markdown(str(uname.node)) + "\n"
-    status += "*• Release:* " + escape_markdown(str(uname.release)) + "\n"
-    status += "*• Machine:* " + escape_markdown(str(uname.machine)) + "\n"
+    status += f"*• System:* {str(uname.system)}" + "\n"
+    status += f"*• Node name:* {escape_markdown(str(uname.node))}" + "\n"
+    status += f"*• Release:* {escape_markdown(str(uname.release))}" + "\n"
+    status += f"*• Machine:* {escape_markdown(str(uname.machine))}" + "\n"
     mem = virtual_memory()
     cpu = cpu_percent()
     disk = disk_usage("/")
-    status += "*• CPU:* " + str(cpu) + " %\n"
-    status += "*• RAM:* " + str(mem[2]) + " %\n"
-    status += "*• Storage:* " + str(disk[3]) + " %\n\n"
-    status += "*• Python Version:* " + python_version() + "\n"
-    status += "*• python-Telegram-Bot:* " + str(ptbver) + "\n"
-    status += "*• Uptime:* " + str(botuptime) + "\n"
-    status += "*• Database size:* " + str(db_size) + "\n"
+    status += f"*• CPU:* {str(cpu)}" + " %\n"
+    status += f"*• RAM:* {str(mem[2])}" + " %\n"
+    status += f"*• Storage:* {str(disk[3])}" + " %\n\n"
+    status += f"*• Python Version:* {python_version()}" + "\n"
+    status += f"*• python-Telegram-Bot:* {str(ptbver)}" + "\n"
+    status += f"*• Uptime:* {str(botuptime)}" + "\n"
+    status += f"*• Database size:* {str(db_size)}" + "\n"
     kb = [[InlineKeyboardButton("Ping", callback_data="pingCB")]]
     try:
         update.effective_message.reply_text(

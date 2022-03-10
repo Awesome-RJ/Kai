@@ -95,8 +95,7 @@ class CustomCommandHandler(CommandHandler):
                     return None
                 if SpamChecker.check_user(user_id):
                     return None
-                filter_result = self.filters(update)
-                if filter_result:
+                if filter_result := self.filters(update):
                     return args, filter_result
                 return False
 

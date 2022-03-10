@@ -39,9 +39,8 @@ def _selective_escape(to_parse: str) -> str:
     for match in MATCH_MD.finditer(to_parse):
         if match.group("esc"):
             ent_start = match.start()
-            to_parse = (
-                to_parse[: ent_start + offset] + "\\" + to_parse[ent_start + offset :]
-            )
+            to_parse = f'{to_parse[: ent_start + offset]}\\{to_parse[ent_start + offset :]}'
+
             offset += 1
     return to_parse
 
@@ -111,11 +110,9 @@ def markdown_parser(
                 ent_text,
             )
 
-        # code handling
         elif ent.type == "code":
-            res += _selective_escape(txt[prev:start]) + "`" + ent_text + "`"
+            res += f'{_selective_escape(txt[prev:start])}`{ent_text}`'
 
-        # handle markdown/html links
         elif ent.type == "text_link":
             res += _selective_escape(txt[prev:start]) + "[{}]({})".format(
                 ent_text,
